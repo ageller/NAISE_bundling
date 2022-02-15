@@ -1,0 +1,14 @@
+body {
+	font: 10px sans-serif;
+}
+
+.node {
+	font: 10px sans-serif;
+}
+
+.link {
+	stroke: gray;
+	/*stroke-opacity: 0.5;*/
+	fill: none;
+	pointer-events: none;
+}
