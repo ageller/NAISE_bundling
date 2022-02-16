@@ -21,7 +21,10 @@ function createSVG(){
 		.radius(function(d) { return d.y; })
 		.angle(function(d) { return d.x/180*Math.PI; });
 
-	params.link = params.svg.append("g").selectAll(".link");
+	//trying to have multiple layers so that I can keep the active ones on top
+	params.link1 = params.svg.append("g").selectAll(".link");
+	params.link2 = params.svg.append("g").selectAll(".link");
+	params.link3 = params.svg.append("g").selectAll(".link");
 	params.node = params.svg.append("g").selectAll(".node");
 
 	//for the arcs
@@ -32,10 +35,10 @@ function createSVG(){
 
 	params.arc = d3.arc()
 		.innerRadius(innerRadius)
-		.outerRadius(innerRadius + params.arcWidth);
+		.outerRadius(innerRadius + params.arc1Width);
 	params.arc2 = d3.arc()
-		.innerRadius(innerRadius + params.arcWidth + 2)
-		.outerRadius(innerRadius + 2.*params.arcWidth + 2);
+		.innerRadius(innerRadius + params.arc1Width + 2)
+		.outerRadius(innerRadius + params.arc1Width + params.arc2Width + 2);
 
 }
 
@@ -49,7 +52,7 @@ function populateBundles(classes){
 
 	params.cluster(params.root);
 
-	params.link = params.link.data(packageImports(params.root.leaves()))
+	params.link1.data(packageResearchers(params.root.leaves(), 'submitted'))
 		.enter().append("path")
 			.each(function(d) { d.source = d[0], d.target = d[d.length - 1]; })
 			.attr("class", function(d){
@@ -61,6 +64,29 @@ function populateBundles(classes){
 			.attr('funded', function(d){return d.target.data.funded;})
 			.attr("d", params.line);
 
+	params.link2.data(packageResearchers(params.root.leaves(), 'funded'))
+		.enter().append("path")
+			.each(function(d) { d.source = d[0], d.target = d[d.length - 1]; })
+			.attr("class", function(d){
+				return "link " + d.target.data.name.replaceAll(' ','').substr(0, d.target.data.name.lastIndexOf('.')).replaceAll('.',' ');
+			})
+			.attr('fullDept',function(d){return d.target.data.name})
+			.attr('year', function(d){return d.target.data.year;})
+			.attr('dollars', function(d){return d.target.data.dollars;})
+			.attr('funded', function(d){return d.target.data.funded;})
+			.attr("d", params.line);
+
+	params.link3.data(packageResearchers(params.root.leaves(), 'active'))
+		.enter().append("path")
+			.each(function(d) { d.source = d[0], d.target = d[d.length - 1]; })
+			.attr("class", function(d){
+				return "link " + d.target.data.name.replaceAll(' ','').substr(0, d.target.data.name.lastIndexOf('.')).replaceAll('.',' ');
+			})
+			.attr('fullDept',function(d){return d.target.data.name})
+			.attr('year', function(d){return d.target.data.year;})
+			.attr('dollars', function(d){return d.target.data.dollars;})
+			.attr('funded', function(d){return d.target.data.funded;})
+			.attr("d", params.line);
 	// text (all the names)
 	// params.node = params.node.data(params.root.leaves())
 	// 	.enter().append("text")
@@ -98,24 +124,26 @@ function populateBundles(classes){
 		return d3.hierarchy(map[""]);
 	}
 
-	// Return a list of imports for the given array of nodes.
-	function packageImports(nodes) {
+	// Return a list of researchers for the given array of nodes.
+	function packageResearchers(nodes, funding = null) {
 		var map = {},
-				imports = [];
+			researchers = [];
 
 		// Compute a map from name to node.
-		nodes.forEach(function(d) {
+		var usenodes = nodes;
+		if (funding) usenodes = nodes.filter(function(d){return d.data.funded == funding; })
+		usenodes.forEach(function(d) {
 			map[d.data.name] = d;
 		});
 
 		// For each import, construct a link from the source to target node.
-		nodes.forEach(function(d) {
-			if (d.data.imports) d.data.imports.forEach(function(i) {
-				imports.push(map[d.data.name].path(map[i]));
+		usenodes.forEach(function(d) {
+			if (d.data.researchers) d.data.researchers.forEach(function(i) {
+				researchers.push(map[d.data.name].path(map[i]));
 			});
 		});
 
-		return imports;
+		return researchers;
 	}
 
 }
@@ -141,6 +169,7 @@ function populateArcs(classes){
 	//there is probably a more efficient way to do this
 	var deptArcs = [];
 	var subDeptArcs = [];
+	var skinnyDepts = [];
 	depts.forEach(function(d,i){
 		var anglesDict = {'index':i, 'startAngle':2*Math.PI, 'endAngle':0, 'angle':2*Math.PI, 'dept':d};
 		var angles = [];
@@ -154,6 +183,7 @@ function populateArcs(classes){
 		anglesDict.startAngle = ex[0];
 		anglesDict.endAngle = ex[1];
 		anglesDict.angle = anglesDict.endAngle - anglesDict.startAngle;
+		if (anglesDict.angle < params.minDeptTextAngle) skinnyDepts.push(d)
 		deptArcs.push(anglesDict)
 	})
 
@@ -199,16 +229,16 @@ function populateArcs(classes){
 		.attr("x", function(d){
 			// not sure why this doesn't center it properly.  Had to add a fudge factor (20) 
 			var a = d.angle/2.;
-			return a*(params.diameter/2. + params.arcWidth) - 20
+			return a*(params.diameter/2. + params.arc1Width) - 20
 		})  
-		.attr("dy", params.arcWidth/2. + params.fontsize/2. - 2) 
+		.attr("dy", params.arc1Width/2. + params.fontsize/2. - 2) 
 		.style('font-size', params.fontsize + 'px')
 		.style('line-height', params.fontsize + 'px')
 		.style('text-anchor','middle')
 		.style('fill','white')
 		.append("textPath")
 			.attr("xlink:href",function(d){return "#deptArc_" +  d.dept;})
-			.text(function(d){return d.dept;});
+			.text(function(d){if (d.angle > params.minDeptTextAngle) return d.dept;});
 
 	//subDept
 	var g = params.svg.append("g")
@@ -225,11 +255,18 @@ function populateArcs(classes){
 
 	//add the text, similar to bundling
 	g.append("text")
-		.attr("class", "subDeptText")
+		.attr("class", function(d){
+			var cls = 'subDeptText';
+			var dd = d.subDept.substring(0, d.subDept.indexOf('.'));
+			if (skinnyDepts.includes(dd)){
+				cls += ' skinny';
+			}
+			return cls;
+		})
 		.attr("dy", "0.3em")
 		.attr("transform", function(d) { 
 			var rot = (d.startAngle + (d.endAngle - d.startAngle)/2.)*180/Math.PI;
-			var x =  params.diameter/2 - params.outerWidth + 2.*params.arcWidth + 4;
+			var x =  params.diameter/2 - params.outerWidth + params.arc1Width + params.arc2Width + 4;
 			return "rotate(" + (rot - 90) + ")translate(" + x + ",0)" + (rot < 180 ? "" : "rotate(180)"); 
 		})
 		.attr("text-anchor", function(d) { 
@@ -237,8 +274,22 @@ function populateArcs(classes){
 			return rot < 180 ? "start" : "end"; 
 		})
 		.text(function(d) { 
-			return d.subDept.substring(d.subDept.indexOf('.') + 1);; 
+			var txt = d.subDept.substring(d.subDept.indexOf('.') + 1);
+			//grad only the acronyms
+			if (txt.includes('(')){
+				var p1 = txt.indexOf('(') + 1;
+				var p2 = txt.indexOf(')');
+				txt = txt.substring(p1, p2)
+			}
+			return txt;
 		});
+
+	d3.selectAll('.subDeptText.skinny').append('tspan')
+		.style('font-weight', 'bold')
+		.text(function(d){
+			var dd = d.subDept.substring(0, d.subDept.indexOf('.'));
+			return ' [' + dd + ']';
+		})
 }
 
 function styleBundles(){
@@ -247,24 +298,29 @@ function styleBundles(){
 		var elem = d3.select(this);
 
 		elem.style('stroke-linecap','round');
-		//color by year
-		var year = elem.attr('year');
-		if (year > 0){
-			elem.style('stroke', params.fillYear(year))
-		} else {
-			console.log(year, elem.attr('fullDept'))
-		}
+		// //color by year
+		// var year = elem.attr('year');
+		// if (year > 0){
+		// 	elem.style('stroke', params.fillYear(year))
+		// } else {
+		// 	console.log(year, elem.attr('fullDept'))
+		// }
 
 		//size by dollar amount
 		var dollars = elem.attr('dollars');
 		elem.style('stroke-width', params.sizeDollar(dollars))
 
-		//opacity by funded
+		//color by funded
 		var funded = elem.attr('funded');
 		if (funded == 'funded'){
 			elem.style('stroke-opacity', 0.7)
+			elem.style('stroke', 'black')
+		} else if (funded == 'active') {
+			elem.style('stroke', '#3f8efc')
+			elem.style('stroke-opacity', 0.85)
 		} else {
-			elem.style('stroke-opacity', 0.1)
+			elem.style('stroke', 'gray');
+			elem.style('stroke-opacity', 0.2)
 		}
 
 	})
