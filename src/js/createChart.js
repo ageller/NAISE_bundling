@@ -4,6 +4,10 @@ function createSVG(){
 	var radius = params.diameter/2;
 	var innerRadius = radius - params.outerWidth;
 
+ 	d3.select("body").append("div")
+ 		.attr('id', 'tooltip')
+ 		.attr('class', 'hidden');
+
 	//define the SVG
 	params.svg = d3.select("body").append("svg")
 		.attr('id','svg')
@@ -56,37 +60,96 @@ function populateBundles(classes){
 		.enter().append("path")
 			.each(function(d) { d.source = d[0], d.target = d[d.length - 1]; })
 			.attr("class", function(d){
-				return "link " + d.target.data.name.replaceAll(' ','').substr(0, d.target.data.name.lastIndexOf('.')).replaceAll('.',' ');
+				var tt = d.target.data.name.replaceAll(' ','');
+				var t = tt.substr(0, tt.lastIndexOf('.')).replaceAll('.',' ');
+				var ss = d.source.data.name.replaceAll(' ','');
+				var s = ss.substr(0, ss).replaceAll('.',' ');
+				return "link " + s + ' ' + t + ' ' + d.source.data.grantNumber;
 			})
-			.attr('fullDept',function(d){return d.target.data.name})
-			.attr('year', function(d){return d.target.data.year;})
-			.attr('dollars', function(d){return d.target.data.dollars;})
-			.attr('funded', function(d){return d.target.data.funded;})
+			.attr('fullTarget',function(d){return d.target.data.name})
+			.attr('fullSource',function(d){return d.source.data.name})
+			.attr('year', function(d){return d.source.data.year;})
+			.attr('dollars', function(d){return d.source.data.dollars;})
+			.attr('funded', function(d){return d.source.data.funded;})
+			.attr('grantNumber', function(d){return d.source.data.grantNumber;})
 			.attr("d", params.line);
 
 	params.link2.data(packageResearchers(params.root.leaves(), 'funded'))
 		.enter().append("path")
 			.each(function(d) { d.source = d[0], d.target = d[d.length - 1]; })
 			.attr("class", function(d){
-				return "link " + d.target.data.name.replaceAll(' ','').substr(0, d.target.data.name.lastIndexOf('.')).replaceAll('.',' ');
+				var tt = d.target.data.name.replaceAll(' ','');
+				var t = tt.substr(0, tt.lastIndexOf('.')).replaceAll('.',' ');
+				var ss = d.source.data.name.replaceAll(' ','');
+				var s = ss.substr(0, ss).replaceAll('.',' ');
+				return "link " + s + ' ' + t + ' ' + d.source.data.grantNumber;
 			})
-			.attr('fullDept',function(d){return d.target.data.name})
-			.attr('year', function(d){return d.target.data.year;})
-			.attr('dollars', function(d){return d.target.data.dollars;})
-			.attr('funded', function(d){return d.target.data.funded;})
+			.attr('fullTarget',function(d){return d.target.data.name})
+			.attr('fullSource',function(d){return d.source.data.name})
+			.attr('year', function(d){return d.source.data.year;})
+			.attr('dollars', function(d){return d.source.data.dollars;})
+			.attr('funded', function(d){return d.source.data.funded;})
+			.attr('grantNumber', function(d){return d.source.data.grantNumber;})
 			.attr("d", params.line);
+
 
 	params.link3.data(packageResearchers(params.root.leaves(), 'active'))
 		.enter().append("path")
 			.each(function(d) { d.source = d[0], d.target = d[d.length - 1]; })
 			.attr("class", function(d){
-				return "link " + d.target.data.name.replaceAll(' ','').substr(0, d.target.data.name.lastIndexOf('.')).replaceAll('.',' ');
+				var tt = d.target.data.name.replaceAll(' ','');
+				var t = tt.substr(0, tt.lastIndexOf('.')).replaceAll('.',' ');
+				var ss = d.source.data.name.replaceAll(' ','');
+				var s = ss.substr(0, ss).replaceAll('.',' ');
+				return "link " + s + ' ' + t + ' ' + d.source.data.grantNumber;
 			})
-			.attr('fullDept',function(d){return d.target.data.name})
-			.attr('year', function(d){return d.target.data.year;})
-			.attr('dollars', function(d){return d.target.data.dollars;})
-			.attr('funded', function(d){return d.target.data.funded;})
+			.attr('fullTarget',function(d){return d.target.data.name})
+			.attr('fullSource',function(d){return d.source.data.name})
+			.attr('year', function(d){return d.source.data.year;})
+			.attr('dollars', function(d){return d.source.data.dollars;})
+			.attr('funded', function(d){return d.source.data.funded;})
+			.attr('grantNumber', function(d){return d.source.data.grantNumber;})
 			.attr("d", params.line);
+
+
+
+
+	d3.selectAll('.link').on('mouseover', function(){
+		//populate the tooltip
+		var year = d3.select(this).attr('year');
+		var dollars = params.numberWithCommas(d3.select(this).attr('dollars'));
+		var grantNumber = d3.select(this).attr('grantNumber');
+		var status =  d3.select(this).attr('funded');
+
+
+		var x = d3.event.pageX + 10;
+		var y = d3.event.pageY + 10;
+
+		d3.select('#tooltip')
+			.html(
+				'<b>Grant No. : </b>' + grantNumber + '<br>' +
+				'<b>Amount : </b>$' + dollars + '<br>' +
+				'<b>Year : </b>' + year + '<br>' +
+				'<b>Status : </b>' + status + '<br>'
+			)
+			.style('left',x + 'px')
+			.style('top',y + 'px')
+			.classed('hidden', false);
+
+		d3.selectAll('.' + grantNumber).classed('highlighted', true);
+
+		console.log(grantNumber, year, status, dollars, d3.select(this).attr('fullSource'), d3.select(this).attr('fullTarget'))
+
+	})
+
+	d3.selectAll('.link').on('mouseout', function(){
+		d3.select('#tooltip')
+			.classed('hidden', true)
+			.html('');
+
+		d3.selectAll('.link').classed('highlighted', false);
+	})
+
 	// text (all the names)
 	// params.node = params.node.data(params.root.leaves())
 	// 	.enter().append("text")
@@ -158,9 +221,15 @@ function populateArcs(classes){
 	var depts = [];
 	var subDepts = [];
 	d3.selectAll('.link').each(function(){
-		var deptList = d3.select(this).attr('fullDept').split('.');
-		var d = deptList[0];
-		var s = deptList[1];
+		var sourceList = d3.select(this).attr('fullSource').split('.');
+		var d = sourceList[0];
+		var s = sourceList[1];
+		if (!depts.includes(d)) depts.push(d);
+		if (!subDepts.includes(d + '.' + s)) subDepts.push(d + '.' + s);
+
+		var targetList = d3.select(this).attr('fullTarget').split('.');
+		d = targetList[0];
+		s = targetList[1];
 		if (!depts.includes(d)) depts.push(d);
 		if (!subDepts.includes(d + '.' + s)) subDepts.push(d + '.' + s);
 	})
@@ -194,6 +263,9 @@ function populateArcs(classes){
 		params.root.leaves().forEach(function(dd){
 			var deptList = dd.data.name;
 			if (deptList.includes(d)){
+				if (dd.data.name == 'ANL-CLS.Mathematics and Computer Science (MCS).BarrySmith'){
+					console.log('here', dd.data.name, d, dd.x, dd.x*Math.PI/180., dd)
+				}
 				angles.push(dd.x*Math.PI/180.)
 			}
 		})
@@ -275,12 +347,12 @@ function populateArcs(classes){
 		})
 		.text(function(d) { 
 			var txt = d.subDept.substring(d.subDept.indexOf('.') + 1);
-			//grad only the acronyms
-			if (txt.includes('(')){
-				var p1 = txt.indexOf('(') + 1;
-				var p2 = txt.indexOf(')');
-				txt = txt.substring(p1, p2)
-			}
+			//use only the acronyms
+			// if (txt.includes('(')){
+			// 	var p1 = txt.indexOf('(') + 1;
+			// 	var p2 = txt.indexOf(')');
+			// 	txt = txt.substring(p1, p2)
+			// }
 			return txt;
 		});
 
@@ -303,25 +375,17 @@ function styleBundles(){
 		// if (year > 0){
 		// 	elem.style('stroke', params.fillYear(year))
 		// } else {
-		// 	console.log(year, elem.attr('fullDept'))
+		// 	console.log(year, elem.attr('fullSource'))
 		// }
 
 		//size by dollar amount
 		var dollars = elem.attr('dollars');
-		elem.style('stroke-width', params.sizeDollar(dollars))
+		elem.style('stroke-width', Math.min(params.sizeDollar(dollars), params.maxSize))
 
 		//color by funded
 		var funded = elem.attr('funded');
-		if (funded == 'funded'){
-			elem.style('stroke-opacity', 0.7)
-			elem.style('stroke', 'black')
-		} else if (funded == 'active') {
-			elem.style('stroke', '#3f8efc')
-			elem.style('stroke-opacity', 0.85)
-		} else {
-			elem.style('stroke', 'gray');
-			elem.style('stroke-opacity', 0.2)
-		}
+		elem.classed(funded, true);
+
 
 	})
 }
