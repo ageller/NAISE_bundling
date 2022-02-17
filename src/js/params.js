@@ -30,7 +30,7 @@ function defineParams(){
 
 		this.fillYear = d3.scaleLinear().domain([2012,2022]).range(['#00708F', '#FF101F']);
 		//this.sizeDollar = d3.scaleLog().base(2).domain([1,6e6]).range([1, 3]);
-		this.sizeDollar = d3.scaleLinear().domain([1, 50000000]).range([1, 6]);
+		this.sizeDollar = d3.scaleLinear().domain([1, 20000000]).range([1, 6]);
 		this.maxSize = 6;
 
 		//I'm going to define the fills based on the departments, and just hard code it in here

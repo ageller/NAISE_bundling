@@ -72,6 +72,7 @@ function populateBundles(classes){
 			.attr('dollars', function(d){return d.source.data.dollars;})
 			.attr('funded', function(d){return d.source.data.funded;})
 			.attr('grantNumber', function(d){return d.source.data.grantNumber;})
+			.attr('grantTitle', function(d){return d.source.data.title;})
 			.attr("d", params.line);
 
 	params.link2.data(packageResearchers(params.root.leaves(), 'funded'))
@@ -90,6 +91,7 @@ function populateBundles(classes){
 			.attr('dollars', function(d){return d.source.data.dollars;})
 			.attr('funded', function(d){return d.source.data.funded;})
 			.attr('grantNumber', function(d){return d.source.data.grantNumber;})
+			.attr('grantTitle', function(d){return d.source.data.title;})
 			.attr("d", params.line);
 
 
@@ -109,6 +111,7 @@ function populateBundles(classes){
 			.attr('dollars', function(d){return d.source.data.dollars;})
 			.attr('funded', function(d){return d.source.data.funded;})
 			.attr('grantNumber', function(d){return d.source.data.grantNumber;})
+			.attr('grantTitle', function(d){return d.source.data.title;})
 			.attr("d", params.line);
 
 
@@ -119,6 +122,7 @@ function populateBundles(classes){
 		var year = d3.select(this).attr('year');
 		var dollars = params.numberWithCommas(d3.select(this).attr('dollars'));
 		var grantNumber = d3.select(this).attr('grantNumber');
+		var title = d3.select(this).attr('grantTitle');
 		var status =  d3.select(this).attr('funded');
 
 
@@ -128,6 +132,7 @@ function populateBundles(classes){
 		d3.select('#tooltip')
 			.html(
 				'<b>Grant No. : </b>' + grantNumber + '<br>' +
+				'<b>Title : </b>' + title + '<br>' +
 				'<b>Amount : </b>$' + dollars + '<br>' +
 				'<b>Year : </b>' + year + '<br>' +
 				'<b>Status : </b>' + status + '<br>'
@@ -137,6 +142,7 @@ function populateBundles(classes){
 			.classed('hidden', false);
 
 		d3.selectAll('.' + grantNumber).classed('highlighted', true);
+		d3.selectAll('.link:not(.' + grantNumber + ')').classed('deemphasized', true);
 
 		console.log(grantNumber, year, status, dollars, d3.select(this).attr('fullSource'), d3.select(this).attr('fullTarget'))
 
@@ -147,7 +153,7 @@ function populateBundles(classes){
 			.classed('hidden', true)
 			.html('');
 
-		d3.selectAll('.link').classed('highlighted', false);
+		d3.selectAll('.link').classed('highlighted', false).classed('deemphasized', false);
 	})
 
 	// text (all the names)
@@ -380,8 +386,8 @@ function styleBundles(){
 
 		//size by dollar amount
 		var dollars = elem.attr('dollars');
-		//elem.style('stroke-width', Math.min(params.sizeDollar(dollars), params.maxSize))
-		elem.style('stroke-width', 2.)
+		elem.style('stroke-width', Math.min(params.sizeDollar(dollars), params.maxSize))
+		//elem.style('stroke-width', 2.)
 
 		//color by funded
 		var funded = elem.attr('funded');

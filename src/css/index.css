@@ -14,6 +14,7 @@ body {
 	stroke-opacity: 0.7;
 	fill: none;
 	pointer-events: stroke;
+	transition: opacity 0.3s ease-in-out;
 }
 
 
@@ -33,7 +34,10 @@ body {
 
 .link.highlighted {
 	stroke-opacity:  1.0;
-	stroke-width: 10 !important;
+	/*stroke-width: 10 !important;*/
+}
+.link.deemphasized {
+	opacity:  0.1;
 }
 
 #tooltip{
