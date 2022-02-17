@@ -380,7 +380,8 @@ function styleBundles(){
 
 		//size by dollar amount
 		var dollars = elem.attr('dollars');
-		elem.style('stroke-width', Math.min(params.sizeDollar(dollars), params.maxSize))
+		//elem.style('stroke-width', Math.min(params.sizeDollar(dollars), params.maxSize))
+		elem.style('stroke-width', 2.)
 
 		//color by funded
 		var funded = elem.attr('funded');
