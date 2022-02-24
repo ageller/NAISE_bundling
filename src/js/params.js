@@ -17,14 +17,22 @@ function defineParams(){
 		this.chord = null;
 		this.arc = null;
 
-		this.arc1Width = 30;
-		this.arc2Width = 15;
-		this.diameter = 960;
-		this.outerWidth = 120;
-		this.xOffset = 220;
-		this.yOffset = 140;
+		// this.arc1Width = 30;
+		// this.arc2Width = 15;
+		// this.diameter = 960;
+		// this.outerWidth = 120;
+		// this.xOffset = 220;
+		// this.yOffset = 140;
 
-		this.fontsize = 12;
+		this.arc1Width = 75;
+		this.arc2Width = 20;
+		this.diameter = 700;
+		this.outerWidth = 120;
+		this.xOffset = 250;
+		this.yOffset = 200;
+
+		this.fontsize1 = 12;
+		this.fontsize2 = 10;
 
 		this.minDeptTextAngle = 0.1;
 

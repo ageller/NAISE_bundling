@@ -20,8 +20,10 @@ function createSVG(){
 	params.cluster = d3.cluster()
 		.size([360, innerRadius]);
 
+//https://bl.ocks.org/owenr/d05687e3d34027ac4aef4db6e913b9f7
 	params.line = d3.radialLine()
 		.curve(d3.curveBundle.beta(0.85))
+//		.curve(d3.curveBasis)
 		.radius(function(d) { return d.y; })
 		.angle(function(d) { return d.x/180*Math.PI; });
 
@@ -49,12 +51,61 @@ function createSVG(){
 ///////////////////////////
 //for hierarchical bundling
 ///////////////////////////
-function populateBundles(classes){
+function createBundles(classes){
+
+	// Lazily construct the package hierarchy from class names.
+	function packageHierarchy(classes) {
+		var map = {};
+
+		function find(name, data) {
+			var node = map[name], i;
+			if (!node) {
+				node = map[name] = data || {name: name, children: []};
+				if (name.length) {
+					node.parent = find(name.substring(0, i = name.lastIndexOf(".")));
+					node.parent.children.push(node);
+					node.key = name.substring(i + 1);
+				}
+			}
+			return node;
+		}
+
+		classes.forEach(function(d) {
+			find(d.name, d);
+		});
+
+		return d3.hierarchy(map[""]);
+	}
 
 	params.root = packageHierarchy(classes)
 		.sum(function(d) { return d.size; });
 
 	params.cluster(params.root);
+}
+
+function populateLinks(){
+
+	// Return a list of researchers for the given array of nodes.
+	function packageResearchers(nodes, funding = null) {
+		var map = {},
+			researchers = [];
+
+		// Compute a map from name to node.
+		var usenodes = nodes;
+		if (funding) usenodes = nodes.filter(function(d){return d.data.funded == funding; })
+		usenodes.forEach(function(d) {
+			map[d.data.name] = d;
+		});
+
+		// For each import, construct a link from the source to target node.
+		usenodes.forEach(function(d) {
+			if (d.data.researchers) d.data.researchers.forEach(function(i) {
+				researchers.push(map[d.data.name].path(map[i]));
+			});
+		});
+
+		return researchers;
+	}
 
 	params.link1.data(packageResearchers(params.root.leaves(), 'submitted'))
 		.enter().append("path")
@@ -169,51 +220,9 @@ function populateBundles(classes){
 	// 			return d.data.name; 
 	// 		});
 
-	// Lazily construct the package hierarchy from class names.
-	function packageHierarchy(classes) {
-		var map = {};
 
-		function find(name, data) {
-			var node = map[name], i;
-			if (!node) {
-				node = map[name] = data || {name: name, children: []};
-				if (name.length) {
-					node.parent = find(name.substring(0, i = name.lastIndexOf(".")));
-					node.parent.children.push(node);
-					node.key = name.substring(i + 1);
-				}
-			}
-			return node;
-		}
 
-		classes.forEach(function(d) {
-			find(d.name, d);
-		});
 
-		return d3.hierarchy(map[""]);
-	}
-
-	// Return a list of researchers for the given array of nodes.
-	function packageResearchers(nodes, funding = null) {
-		var map = {},
-			researchers = [];
-
-		// Compute a map from name to node.
-		var usenodes = nodes;
-		if (funding) usenodes = nodes.filter(function(d){return d.data.funded == funding; })
-		usenodes.forEach(function(d) {
-			map[d.data.name] = d;
-		});
-
-		// For each import, construct a link from the source to target node.
-		usenodes.forEach(function(d) {
-			if (d.data.researchers) d.data.researchers.forEach(function(i) {
-				researchers.push(map[d.data.name].path(map[i]));
-			});
-		});
-
-		return researchers;
-	}
 
 }
 
@@ -221,7 +230,7 @@ function populateBundles(classes){
 ///////////////////////////
 //for chord diagram, using only exterior arcs 
 ///////////////////////////
-function populateArcs(classes){
+function populateArcs(){
 
 	//compile the departments and sub_departments
 	var depts = [];
@@ -305,13 +314,13 @@ function populateArcs(classes){
 	g.append("text")
 		.attr("class", "deptText")
 		.attr("x", function(d){
-			// not sure why this doesn't center it properly.  Had to add a fudge factor (20) 
+			// not sure why this doesn't center it properly.  Had to add a fudge factor
 			var a = d.angle/2.;
-			return a*(params.diameter/2. + params.arc1Width) - 20
+			return a*(params.diameter/2. + params.arc1Width)*0.7
 		})  
-		.attr("dy", params.arc1Width/2. + params.fontsize/2. - 2) 
-		.style('font-size', params.fontsize + 'px')
-		.style('line-height', params.fontsize + 'px')
+		.attr("dy", params.arc1Width/2. + params.fontsize1/2. - 2) 
+		.style('font-size', params.fontsize1 + 'px')
+		.style('line-height', params.fontsize1 + 'px')
 		.style('text-anchor','middle')
 		.style('fill','white')
 		.append("textPath")
@@ -351,6 +360,8 @@ function populateArcs(classes){
 			var rot = (d.startAngle + (d.endAngle - d.startAngle)/2.)*180/Math.PI;
 			return rot < 180 ? "start" : "end"; 
 		})
+		.style('font-size', params.fontsize2 + 'px')
+		.style('line-height', params.fontsize2 + 'px')
 		.text(function(d) { 
 			var txt = d.subDept.substring(d.subDept.indexOf('.') + 1);
 			//use only the acronyms
@@ -395,7 +406,10 @@ function styleBundles(){
 
 
 	})
+
+
 }
+
 
 function exportSVG(){
 	//https://morioh.com/p/287697cc17da
@@ -414,8 +428,19 @@ d3.json("src/data/NAISE_bundling.json", function(error, classes) {
 	if (error) throw error;
 
 	params.classes = classes;
-	populateBundles(classes);
-	populateArcs(classes);
-	styleBundles(classes);
+	createBundles(classes);
+	populateLinks(classes);
+	populateArcs();
+	styleBundles();
 
+	//hide all the links (to create a donut plot)
+	d3.selectAll('.link').style('display', 'None');
+
+	//add a large NAISE to the middle
+	params.svg.append("g").append('text')
+		.attr('text-anchor', 'middle')
+		.attr('dy', '30px') //not sure how to calculate this number
+		.style('font-size', '80px')
+		.style('line-height', '80px')
+		.text('NAISE')
 });
