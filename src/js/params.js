@@ -28,7 +28,7 @@ function defineParams(){
 		this.arc2Width = 20;
 		this.diameter = 700;
 		this.outerWidth = 120;
-		this.xOffset = 250;
+		this.xOffset = 300;
 		this.yOffset = 200;
 
 		this.fontsize1 = 12;

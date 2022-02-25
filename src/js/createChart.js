@@ -424,7 +424,8 @@ function exportSVG(){
 //runs on load
 defineParams();
 createSVG();
-d3.json("src/data/NAISE_bundling.json", function(error, classes) {
+//d3.json("src/data/NAISE_bundling.json", function(error, classes) {
+d3.json("src/data/NAISE_JAs.json", function(error, classes) {
 	if (error) throw error;
 
 	params.classes = classes;
