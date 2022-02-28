@@ -10,7 +10,7 @@ __pycache__
 
 # data files
 ####################
-*.json
-*.csv
+*.json*
+*.csv*
 *.xls*
-*.pdf
+*.pdf*

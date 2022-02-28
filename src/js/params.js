@@ -51,10 +51,13 @@ function defineParams(){
 			// 'ANL-PSE'   : '#67db67', //
 			'ANL-CLS'   : '#0045cf', // 
 			'ANL-EGS'   : '#3366CC', // Blue
+			'ANL-IS'    : '#477ff5', // Blue
 			'ANL-PSC'   : '#6592f0', // 
 			'ANL-PSE'   : '#98b6f5', //
+			'NU-NAISE'  : '#401F68', // Purple 120
 			'NU-MCC'    : '#4E2A84', // Northwestern purple
 			'NU-FEIN'   : '#684c96', // Purple 80
+			'NU-OR'     : '#836EAA', // Purple 60 // NOTE: this is the same as Medill
 			'NU-Medill' : '#836EAA', // Purple 60
 			'NU-WCAS'   : '#a495c3'  // Purple 40
 		}
